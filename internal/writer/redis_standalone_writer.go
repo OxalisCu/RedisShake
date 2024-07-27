@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"strconv"
 	"strings"
 	"sync"
@@ -26,15 +27,16 @@ type RedisWriterOptions struct {
 	Password string `mapstructure:"password" default:""`
 	Tls      bool   `mapstructure:"tls" default:"false"`
 	OffReply bool   `mapstructure:"off_reply" default:"false"`
+	Clients  int    `mapstructure:"clients" default:"1"`
 }
 
 type redisStandaloneWriter struct {
 	address string
-	client  *client.Redis
+	clients []*client.Redis
 	DbId    int
 
-	chWaitReply chan *entry.Entry
-	chWaitWg    sync.WaitGroup
+	chWaitReply []chan *entry.Entry
+	chWaitWg    []sync.WaitGroup
 	offReply    bool
 	ch          chan *entry.Entry
 	chWg        sync.WaitGroup
@@ -50,16 +52,26 @@ func NewRedisStandaloneWriter(ctx context.Context, opts *RedisWriterOptions) Wri
 	rw := new(redisStandaloneWriter)
 	rw.address = opts.Address
 	rw.stat.Name = "writer_" + strings.Replace(opts.Address, ":", "_", -1)
-	rw.client = client.NewRedisClient(ctx, opts.Address, opts.Username, opts.Password, opts.Tls, false)
+	for i := 0; i < opts.Clients; i++ {
+		rw.clients = append(rw.clients, client.NewRedisClient(ctx, opts.Address, opts.Username, opts.Password, opts.Tls, false))
+	}
 	rw.ch = make(chan *entry.Entry, 1024)
 	if opts.OffReply {
 		log.Infof("turn off the reply of write")
 		rw.offReply = true
-		rw.client.Send("CLIENT", "REPLY", "OFF")
+		for _, c := range rw.clients {
+			c.Send("CLIENT", "REPLY", "OFF")
+		}
 	} else {
-		rw.chWaitReply = make(chan *entry.Entry, config.Opt.Advanced.PipelineCountLimit)
-		rw.chWaitWg.Add(1)
-		go rw.processReply()
+		rw.chWaitReply = make([]chan *entry.Entry, opts.Clients)
+		rw.chWaitWg = make([]sync.WaitGroup, opts.Clients)
+		for idx := range rw.chWaitReply {
+			rw.chWaitReply[idx] = make(chan *entry.Entry, config.Opt.Advanced.PipelineCountLimit)
+			rw.chWaitWg[idx].Add(1)
+		}
+		for idx := range rw.clients {
+			go rw.processReply(idx)
+		}
 	}
 	return rw
 }
@@ -68,8 +80,12 @@ func (w *redisStandaloneWriter) Close() {
 	if !w.offReply {
 		close(w.ch)
 		w.chWg.Wait()
-		close(w.chWaitReply)
-		w.chWaitWg.Wait()
+		for _, ch := range w.chWaitReply {
+			close(ch)
+		}
+		for idx := range w.chWaitWg {
+			w.chWaitWg[idx].Wait()
+		}
 	}
 }
 
@@ -88,12 +104,15 @@ func (w *redisStandaloneWriter) StartWrite(ctx context.Context) chan *entry.Entr
 				time.Sleep(1 * time.Nanosecond)
 			}
 			log.Debugf("[%s] send cmd. cmd=[%s]", w.stat.Name, e.String())
+			// random select a client to send
+			rand.New(rand.NewSource(time.Now().UnixNano()))
+			selected := rand.Intn(len(w.clients))
 			if !w.offReply {
-				w.chWaitReply <- e
+				w.chWaitReply[selected] <- e
 				atomic.AddInt64(&w.stat.UnansweredBytes, e.SerializedSize)
 				atomic.AddInt64(&w.stat.UnansweredEntries, 1)
 			}
-			w.client.SendBytes(bytes)
+			w.clients[selected].SendBytes(bytes)
 		}
 		w.chWg.Done()
 	}()
@@ -107,19 +126,21 @@ func (w *redisStandaloneWriter) Write(e *entry.Entry) {
 
 func (w *redisStandaloneWriter) switchDbTo(newDbId int) {
 	log.Debugf("[%s] switch db to [%d]", w.stat.Name, newDbId)
-	w.client.Send("select", strconv.Itoa(newDbId))
 	w.DbId = newDbId
-	if !w.offReply {
-		w.chWaitReply <- &entry.Entry{
-			Argv:    []string{"select", strconv.Itoa(newDbId)},
-			CmdName: "select",
+	for idx, c := range w.clients {
+		c.Send("select", strconv.Itoa(newDbId))
+		if !w.offReply {
+			w.chWaitReply[idx] <- &entry.Entry{
+				Argv:    []string{"select", strconv.Itoa(newDbId)},
+				CmdName: "select",
+			}
 		}
 	}
 }
 
-func (w *redisStandaloneWriter) processReply() {
-	for e := range w.chWaitReply {
-		reply, err := w.client.Receive()
+func (w *redisStandaloneWriter) processReply(idx int) {
+	for e := range w.chWaitReply[idx] {
+		reply, err := w.clients[idx].Receive()
 		log.Debugf("[%s] receive reply. reply=[%v], cmd=[%s]", w.stat.Name, reply, e.String())
 
 		// It's good to skip the nil error since some write commands will return the null reply. For example,
@@ -141,7 +162,7 @@ func (w *redisStandaloneWriter) processReply() {
 		atomic.AddInt64(&w.stat.UnansweredBytes, -e.SerializedSize)
 		atomic.AddInt64(&w.stat.UnansweredEntries, -1)
 	}
-	w.chWaitWg.Done()
+	w.chWaitWg[idx].Done()
 }
 
 func (w *redisStandaloneWriter) Status() interface{} {
