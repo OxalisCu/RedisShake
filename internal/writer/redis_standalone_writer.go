@@ -35,11 +35,12 @@ type redisStandaloneWriter struct {
 	clients []*client.Redis
 	DbId    int
 
-	chWaitReply []chan *entry.Entry
-	chWaitWg    []sync.WaitGroup
-	offReply    bool
-	ch          chan *entry.Entry
-	chWg        sync.WaitGroup
+	clientNum     int
+	offReply      bool
+	chWaitReplies []chan *entry.Entry
+	chWaitWgs     []sync.WaitGroup
+	chs           []chan *entry.Entry
+	chWgs         []sync.WaitGroup
 
 	stat struct {
 		Name              string `json:"name"`
@@ -52,10 +53,15 @@ func NewRedisStandaloneWriter(ctx context.Context, opts *RedisWriterOptions) Wri
 	rw := new(redisStandaloneWriter)
 	rw.address = opts.Address
 	rw.stat.Name = "writer_" + strings.Replace(opts.Address, ":", "_", -1)
-	for i := 0; i < opts.Clients; i++ {
+	rw.clientNum = opts.Clients
+	for i := 0; i < rw.clientNum; i++ {
 		rw.clients = append(rw.clients, client.NewRedisClient(ctx, opts.Address, opts.Username, opts.Password, opts.Tls, false))
 	}
-	rw.ch = make(chan *entry.Entry, 1024)
+	rw.chs = make([]chan *entry.Entry, rw.clientNum)
+	rw.chWgs = make([]sync.WaitGroup, rw.clientNum)
+	for idx := range rw.chs {
+		rw.chs[idx] = make(chan *entry.Entry, 1024)
+	}
 	if opts.OffReply {
 		log.Infof("turn off the reply of write")
 		rw.offReply = true
@@ -63,106 +69,112 @@ func NewRedisStandaloneWriter(ctx context.Context, opts *RedisWriterOptions) Wri
 			c.Send("CLIENT", "REPLY", "OFF")
 		}
 	} else {
-		rw.chWaitReply = make([]chan *entry.Entry, opts.Clients)
-		rw.chWaitWg = make([]sync.WaitGroup, opts.Clients)
-		for idx := range rw.chWaitReply {
-			rw.chWaitReply[idx] = make(chan *entry.Entry, config.Opt.Advanced.PipelineCountLimit)
-			rw.chWaitWg[idx].Add(1)
+		rw.chWaitReplies = make([]chan *entry.Entry, rw.clientNum)
+		rw.chWaitWgs = make([]sync.WaitGroup, rw.clientNum)
+		for idx := range rw.chWaitReplies {
+			rw.chWaitReplies[idx] = make(chan *entry.Entry, config.Opt.Advanced.PipelineCountLimit)
+			rw.chWaitWgs[idx].Add(1)
 		}
-		for idx := range rw.clients {
-			go rw.processReply(idx)
-		}
+		go rw.processReply()
 	}
 	return rw
 }
 
 func (w *redisStandaloneWriter) Close() {
+	for idx := range w.chs {
+		close(w.chs[idx])
+	}
+	for idx := range w.chWgs {
+		w.chWgs[idx].Wait()
+	}
 	if !w.offReply {
-		close(w.ch)
-		w.chWg.Wait()
-		for _, ch := range w.chWaitReply {
-			close(ch)
+		for idx := range w.chWaitReplies {
+			close(w.chWaitReplies[idx])
 		}
-		for idx := range w.chWaitWg {
-			w.chWaitWg[idx].Wait()
+		for idx := range w.chWaitWgs {
+			w.chWaitWgs[idx].Wait()
 		}
 	}
 }
 
-func (w *redisStandaloneWriter) StartWrite(ctx context.Context) chan *entry.Entry {
-	w.chWg = sync.WaitGroup{}
-	w.chWg.Add(1)
-	go func() {
-		for e := range w.ch {
-			// switch db if we need
-			if w.DbId != e.DbId {
-				w.switchDbTo(e.DbId)
+func (w *redisStandaloneWriter) StartWrite(ctx context.Context) (ch chan *entry.Entry) {
+	for i := range w.clients {
+		w.chWgs[i].Add(1)
+		go func(idx int) {
+			for e := range w.chs[idx] {
+				// switch db if we need
+				if w.DbId != e.DbId {
+					w.switchDbTo(idx, e.DbId)
+				}
+				// send
+				bytes := e.Serialize()
+				for e.SerializedSize+atomic.LoadInt64(&w.stat.UnansweredBytes) > config.Opt.Advanced.TargetRedisClientMaxQuerybufLen {
+					time.Sleep(1 * time.Nanosecond)
+				}
+				log.Debugf("[%s] send cmd. cmd=[%s]", w.stat.Name, e.String())
+				if !w.offReply {
+					w.chWaitReplies[idx] <- e
+					atomic.AddInt64(&w.stat.UnansweredBytes, e.SerializedSize)
+					atomic.AddInt64(&w.stat.UnansweredEntries, 1)
+				}
+				w.clients[idx].SendBytes(bytes)
 			}
-			// send
-			bytes := e.Serialize()
-			for e.SerializedSize+atomic.LoadInt64(&w.stat.UnansweredBytes) > config.Opt.Advanced.TargetRedisClientMaxQuerybufLen {
-				time.Sleep(1 * time.Nanosecond)
-			}
-			log.Debugf("[%s] send cmd. cmd=[%s]", w.stat.Name, e.String())
-			// random select a client to send
-			rand.New(rand.NewSource(time.Now().UnixNano()))
-			selected := rand.Intn(len(w.clients))
-			if !w.offReply {
-				w.chWaitReply[selected] <- e
-				atomic.AddInt64(&w.stat.UnansweredBytes, e.SerializedSize)
-				atomic.AddInt64(&w.stat.UnansweredEntries, 1)
-			}
-			w.clients[selected].SendBytes(bytes)
-		}
-		w.chWg.Done()
-	}()
+			w.chWgs[idx].Done()
+		}(i)
+	}
 
-	return w.ch
+	return nil
 }
 
 func (w *redisStandaloneWriter) Write(e *entry.Entry) {
-	w.ch <- e
+	// random select a client to send
+	rand.New(rand.NewSource(time.Now().UnixNano()))
+	selected := rand.Intn(len(w.clients))
+	w.chs[selected] <- e
 }
 
-func (w *redisStandaloneWriter) switchDbTo(newDbId int) {
+func (w *redisStandaloneWriter) switchDbTo(idx, newDbId int) {
 	log.Debugf("[%s] switch db to [%d]", w.stat.Name, newDbId)
 	w.DbId = newDbId
-	for idx, c := range w.clients {
-		c.Send("select", strconv.Itoa(newDbId))
-		if !w.offReply {
-			w.chWaitReply[idx] <- &entry.Entry{
-				Argv:    []string{"select", strconv.Itoa(newDbId)},
-				CmdName: "select",
-			}
+	w.clients[idx].Send("select", strconv.Itoa(newDbId))
+	if !w.offReply {
+		w.chWaitReplies[idx] <- &entry.Entry{
+			Argv:    []string{"select", strconv.Itoa(newDbId)},
+			CmdName: "select",
 		}
 	}
 }
 
-func (w *redisStandaloneWriter) processReply(idx int) {
-	for e := range w.chWaitReply[idx] {
-		reply, err := w.clients[idx].Receive()
-		log.Debugf("[%s] receive reply. reply=[%v], cmd=[%s]", w.stat.Name, reply, e.String())
+func (w *redisStandaloneWriter) processReply() {
+	for i := range w.chWaitReplies {
+		w.chWaitWgs[i].Add(1)
+		go func(idx int) {
+			for e := range w.chWaitReplies[idx] {
+				reply, err := w.clients[idx].Receive()
+				log.Debugf("[%s] receive reply. reply=[%v], cmd=[%s]", w.stat.Name, reply, e.String())
 
-		// It's good to skip the nil error since some write commands will return the null reply. For example,
-		// the SET command with NX option will return nil if the key already exists.
-		if err != nil && !errors.Is(err, proto.Nil) {
-			if err.Error() == "BUSYKEY Target key name already exists." {
-				if config.Opt.Advanced.RDBRestoreCommandBehavior == "skip" {
-					log.Debugf("[%s] redisStandaloneWriter received BUSYKEY reply. cmd=[%s]", w.stat.Name, e.String())
-				} else if config.Opt.Advanced.RDBRestoreCommandBehavior == "panic" {
-					log.Panicf("[%s] redisStandaloneWriter received BUSYKEY reply. cmd=[%s]", w.stat.Name, e.String())
+				// It's good to skip the nil error since some write commands will return the null reply. For example,
+				// the SET command with NX option will return nil if the key already exists.
+				if err != nil && !errors.Is(err, proto.Nil) {
+					if err.Error() == "BUSYKEY Target key name already exists." {
+						if config.Opt.Advanced.RDBRestoreCommandBehavior == "skip" {
+							log.Debugf("[%s] redisStandaloneWriter received BUSYKEY reply. cmd=[%s]", w.stat.Name, e.String())
+						} else if config.Opt.Advanced.RDBRestoreCommandBehavior == "panic" {
+							log.Panicf("[%s] redisStandaloneWriter received BUSYKEY reply. cmd=[%s]", w.stat.Name, e.String())
+						}
+					} else {
+						log.Panicf("[%s] receive reply failed. cmd=[%s], error=[%v]", w.stat.Name, e.String(), err)
+					}
 				}
-			} else {
-				log.Panicf("[%s] receive reply failed. cmd=[%s], error=[%v]", w.stat.Name, e.String(), err)
+				if strings.EqualFold(e.CmdName, "select") { // skip select command
+					continue
+				}
+				atomic.AddInt64(&w.stat.UnansweredBytes, -e.SerializedSize)
+				atomic.AddInt64(&w.stat.UnansweredEntries, -1)
 			}
-		}
-		if strings.EqualFold(e.CmdName, "select") { // skip select command
-			continue
-		}
-		atomic.AddInt64(&w.stat.UnansweredBytes, -e.SerializedSize)
-		atomic.AddInt64(&w.stat.UnansweredEntries, -1)
+			w.chWaitWgs[idx].Done()
+		}(i)
 	}
-	w.chWaitWg[idx].Done()
 }
 
 func (w *redisStandaloneWriter) Status() interface{} {
