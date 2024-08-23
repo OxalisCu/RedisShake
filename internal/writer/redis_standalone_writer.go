@@ -34,6 +34,7 @@ type redisStandaloneWriter struct {
 	address string
 	clients []*client.Redis
 	DbId    int
+	rand    *rand.Rand
 
 	clientNum     int
 	offReply      bool
@@ -54,6 +55,7 @@ func NewRedisStandaloneWriter(ctx context.Context, opts *RedisWriterOptions) Wri
 	rw.address = opts.Address
 	rw.stat.Name = "writer_" + strings.Replace(opts.Address, ":", "_", -1)
 	rw.clientNum = opts.Clients
+	rw.rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < rw.clientNum; i++ {
 		rw.clients = append(rw.clients, client.NewRedisClient(ctx, opts.Address, opts.Username, opts.Password, opts.Tls, false))
 	}
@@ -128,8 +130,7 @@ func (w *redisStandaloneWriter) StartWrite(ctx context.Context) (ch chan *entry.
 
 func (w *redisStandaloneWriter) Write(e *entry.Entry) {
 	// random select a client to send
-	rand.New(rand.NewSource(time.Now().UnixNano()))
-	selected := rand.Intn(len(w.clients))
+	selected := w.rand.Intn(len(w.clients))
 	w.chs[selected] <- e
 }
 
