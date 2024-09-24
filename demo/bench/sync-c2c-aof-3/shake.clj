@@ -1,0 +1,8 @@
+2024-09-21 21:01:53 INF read_count=[126702], read_ops=[126721.76], write_count=[126702], write_ops=[126721.76], src-2, syncing aof, diff=[-16381]
+2024-09-21 21:01:58 INF read_count=[1668628], read_ops=[308662.85], write_count=[1668628], write_ops=[308664.85], src-3, syncing aof, diff=[0]
+2024-09-21 21:02:03 INF read_count=[3208370], read_ops=[309041.70], write_count=[3208368], write_ops=[309041.70], src-0, syncing aof, diff=[-16369]
+2024-09-21 21:02:08 INF read_count=[4700736], read_ops=[309870.34], write_count=[4700735], write_ops=[309868.34], src-1, syncing aof, diff=[-16358]
+2024-09-21 21:02:13 INF read_count=[6244444], read_ops=[308282.84], write_count=[6244444], write_ops=[308284.84], src-2, syncing aof, diff=[14]
+2024-09-21 21:02:18 INF read_count=[7786569], read_ops=[309021.28], write_count=[7786569], write_ops=[309021.28], src-3, syncing aof, diff=[32770]
+2024-09-21 21:02:23 INF read_count=[9322920], read_ops=[305796.91], write_count=[9322920], write_ops=[305796.91], src-0, syncing aof, diff=[49152]
+2024-09-21 21:02:28 INF read_count=[10000000], read_ops=[0.00], write_count=[10000000], write_ops=[0.00], src-1, syncing aof, diff=[0]

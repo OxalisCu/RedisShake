@@ -1,0 +1,16 @@
+type = "sync"
+
+[sync_reader]
+cluster = false
+address = "127.0.0.1:38001"
+sync_rdb = true
+sync_aof = true
+
+[redis_writer]
+cluster = false
+address = "127.0.0.1:38005"
+
+[advanced]
+# pprof_port = 40000
+log_level = "info"
+dir = "data-2"

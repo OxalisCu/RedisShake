@@ -1,0 +1,16 @@
+type = "scan"
+
+[scan_reader]
+cluster = false
+address = "127.0.0.1:21004"
+scan = true
+ksn = true
+
+[redis_writer]
+cluster = false
+address = "127.0.0.1:21008"
+
+[advanced]
+# pprof_port = 40000
+log_level = "info"
+dir = "data-4"

@@ -1,0 +1,13 @@
+2024-09-23 23:40:20 INF read_count=[83722], read_ops=[19321.12], write_count=[83722], write_ops=[19321.12], need_update_count=[0]
+2024-09-23 23:40:25 INF read_count=[416466], read_ops=[66210.18], write_count=[416465], write_ops=[66210.18], need_update_count=[19]
+2024-09-23 23:40:30 INF read_count=[748207], read_ops=[66040.91], write_count=[748207], write_ops=[66040.91], need_update_count=[1]
+2024-09-23 23:40:35 INF read_count=[1086441], read_ops=[67962.42], write_count=[1086441], write_ops=[67962.42], need_update_count=[0]
+2024-09-23 23:40:40 INF read_count=[1399209], read_ops=[64512.83], write_count=[1399209], write_ops=[64512.83], need_update_count=[12]
+2024-09-23 23:40:45 INF read_count=[1706413], read_ops=[59446.18], write_count=[1706412], write_ops=[59446.18], need_update_count=[2]
+2024-09-23 23:40:50 INF read_count=[2013345], read_ops=[55278.31], write_count=[2013345], write_ops=[55278.31], need_update_count=[0]
+2024-09-23 23:40:55 INF read_count=[2302099], read_ops=[57094.40], write_count=[2302099], write_ops=[57094.40], need_update_count=[0]
+2024-09-23 23:40:58 ERR [writer_127.0.0.1_21005] redisStandaloneWriter received BUSYKEY reply. cmd=[RESTORE key_0000000001 0 @@KLWaLkiSPz51gfwQmKT5FPu9cYKK0JUYlX5KyDhS1bxxGfN42iZ49FcAG4zYrfIu
+                   �
+                    �8i...]
+                        RedisShake/internal/writer/redis_standalone_writer.go:164 -> (*redisStandaloneWriter).processReply.func1()
+                        runtime/asm_amd64.s:1695 -> goexit()

@@ -1,0 +1,3 @@
+2024-09-23 21:33:32 INF read_count=[1972983], read_ops=[755443.30], write_count=[1972979], write_ops=[755443.30], src-1, syncing rdb, size=[30 MiB/196 MiB]
+2024-09-23 21:33:37 INF read_count=[5991356], read_ops=[820393.59], write_count=[5991353], write_ops=[820392.59], src-2, syncing rdb, size=[108 MiB/196 MiB]
+2024-09-23 21:33:42 INF read_count=[9961827], read_ops=[781905.29], write_count=[9961823], write_ops=[781905.29], src-3, syncing rdb, size=[186 MiB/196 MiB]

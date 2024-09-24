@@ -13,8 +13,5 @@ data/
 log/
 
 demo/data
-demo/config
-demo/bench
 
-bin-*
 data-*

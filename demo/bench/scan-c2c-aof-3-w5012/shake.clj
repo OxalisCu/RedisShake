@@ -1,0 +1,8 @@
+2024-09-23 21:36:34 INF read_count=[1036514], read_ops=[264584.13], write_count=[1036514], write_ops=[264584.13], src-3, need_update_count=[0]
+2024-09-23 21:36:39 INF read_count=[2299031], read_ops=[260432.06], write_count=[2299031], write_ops=[260433.06], src-0, need_update_count=[0]
+2024-09-23 21:36:44 INF read_count=[3599633], read_ops=[261098.14], write_count=[3599633], write_ops=[261097.14], src-1, need_update_count=[1]
+2024-09-23 21:36:49 INF read_count=[4848446], read_ops=[233882.96], write_count=[4848446], write_ops=[233883.96], src-2, need_update_count=[0]
+2024-09-23 21:36:54 INF read_count=[6175849], read_ops=[262752.32], write_count=[6175849], write_ops=[262752.32], src-3, need_update_count=[0]
+2024-09-23 21:36:59 INF read_count=[7510531], read_ops=[269407.04], write_count=[7510531], write_ops=[269408.04], src-0, need_update_count=[17]
+2024-09-23 21:37:04 INF read_count=[8772028], read_ops=[235405.06], write_count=[8772028], write_ops=[235405.06], src-1, need_update_count=[1]
+2024-09-23 21:37:09 INF read_count=[9802074], read_ops=[187982.51], write_count=[9802073], write_ops=[187982.51], src-2, need_update_count=[0]

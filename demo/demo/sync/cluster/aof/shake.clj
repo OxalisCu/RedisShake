@@ -1,0 +1,20 @@
+2024-09-23 22:46:23 INF read_count=[897787], read_ops=[313081.87], write_count=[897784], write_ops=[313081.87], src-2, syncing aof, diff=[18]
+2024-09-23 22:46:28 INF read_count=[2441690], read_ops=[306445.61], write_count=[2441688], write_ops=[306445.61], src-3, syncing aof, diff=[20]
+2024-09-23 22:46:33 INF read_count=[3985262], read_ops=[310977.71], write_count=[3985262], write_ops=[310974.71], src-0, syncing aof, diff=[49177]
+2024-09-23 22:46:38 INF read_count=[5528634], read_ops=[307013.50], write_count=[5528634], write_ops=[307013.50], src-1, syncing aof, diff=[16384]
+2024-09-23 22:46:43 INF read_count=[7072475], read_ops=[315130.18], write_count=[7072475], write_ops=[315130.18], src-2, syncing aof, diff=[65544]
+2024-09-23 22:46:48 INF read_count=[8616159], read_ops=[302492.02], write_count=[8616159], write_ops=[302492.02], src-3, syncing aof, diff=[65536]
+2024-09-23 22:46:53 INF read_count=[10155252], read_ops=[311243.59], write_count=[10155251], write_ops=[311243.59], src-0, syncing aof, diff=[6]
+2024-09-23 22:46:58 INF read_count=[11700254], read_ops=[307182.38], write_count=[11700254], write_ops=[307184.38], src-1, syncing aof, diff=[32780]
+2024-09-23 22:47:03 INF read_count=[13200402], read_ops=[299091.77], write_count=[13200402], write_ops=[299091.77], src-2, syncing aof, diff=[49152]
+2024-09-23 22:47:08 INF read_count=[14682454], read_ops=[312528.59], write_count=[14682454], write_ops=[312530.59], src-3, syncing aof, diff=[32788]
+2024-09-23 22:47:13 INF read_count=[16228790], read_ops=[308561.88], write_count=[16228790], write_ops=[308563.88], src-0, syncing aof, diff=[25]
+2024-09-23 22:47:18 INF read_count=[17658824], read_ops=[274687.34], write_count=[17658824], write_ops=[274686.34], src-1, syncing aof, diff=[65536]
+2024-09-23 22:47:23 INF read_count=[19215671], read_ops=[311183.39], write_count=[19215670], write_ops=[311180.40], src-2, syncing aof, diff=[-16384]
+2024-09-23 22:47:28 INF read_count=[20759199], read_ops=[304750.96], write_count=[20759199], write_ops=[304749.96], src-3, syncing aof, diff=[65536]
+2024-09-23 22:47:33 INF read_count=[22315678], read_ops=[313274.11], write_count=[22315678], write_ops=[313274.11], src-0, syncing aof, diff=[65561]
+2024-09-23 22:47:38 INF read_count=[23862954], read_ops=[307878.15], write_count=[23862954], write_ops=[307878.15], src-1, syncing aof, diff=[16387]
+2024-09-23 22:47:43 INF read_count=[25417385], read_ops=[312148.51], write_count=[25417385], write_ops=[312148.51], src-2, syncing aof, diff=[7]
+2024-09-23 22:47:48 ERR read tcp 127.0.0.1:59920->127.0.0.1:38003: read: connection reset by peer
+                        RedisShake/internal/reader/sync_standalone_reader.go:308 -> (*syncStandaloneReader).receiveAOF()
+                        runtime/asm_amd64.s:1695 -> goexit()
