@@ -1,4 +1,4 @@
-logdir=/home/duk/code/RedisShake/demo/bench
+# logdir read from .env
 pprof_port=40000
 
 declare -A mode2filename
@@ -54,14 +54,12 @@ listen() {
     suffix="debug=1"
   fi
   # go tool pprof "http://127.0.0.1:$pprof_port/debug/pprof/$mode?$suffix"
-  bash -c "export PPROF_TMPDIR=\"/home/duk/code/RedisShake/demo/bench/$dirname\"; go tool pprof \"http://127.0.0.1:$pprof_port/debug/pprof/$mode?$suffix\"" &
+  bash -c "export PPROF_TMPDIR=\"$logdir/$dirname\"; go tool pprof \"http://127.0.0.1:$pprof_port/debug/pprof/$mode?$suffix\"" &
 }
 
 if [ "$action" = "listen" ]; then
-  # export PPROF_TMPDIR="/home/duk/code/RedisShake/demo/bench/$dirname"
   if [ "$mode" = "all" ]; then
     for m in ${modes[@]}; do
-      
       listen $m
     done
   else

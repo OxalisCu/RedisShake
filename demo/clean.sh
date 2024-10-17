@@ -1,12 +1,11 @@
 #!/bin/bash
 
-datadir=/home/duk/code/RedisShake/demo/data/
-shakedir=/home/duk/code/RedisShake/cmd/redis-shake/data
+# srcdir read from .env
 
 if [ "$1" = "clean" ]; then
-  rm -rf /home/duk/code/RedisShake/data
-  rm -rf /home/duk/code/RedisShake/demo/data/*
-  rm -rf /home/duk/code/RedisShake/cmd/redis-shake/data/*
+  rm -rf $srcdir/data*
+  rm -rf $srcdir/demo/data/*
+  rm -rf $srcdir/cmd/redis-shake/data/*
 elif [ "$1" = "kill" ]; then
   killall -9 redis-server
 else

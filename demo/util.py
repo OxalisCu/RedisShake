@@ -7,8 +7,10 @@ import os
 import shutil
 from enum import Enum
 
-BENCH_TYPE_PATH = "/home/duk/code/RedisShake/demo/config/launchtype.txt"
 
+CONFIG_PATH = os.getenv("configpath")
+CONFIG_DIRNAME = os.getenv("configdirname")
+BENCH_TYPE_FILE = "launchtype.txt"
 
 class BenchType(Enum):
     sync_c2c = "sync-c2c"
@@ -61,7 +63,7 @@ def get_bench_type(t: str):
 
 
 def get_t_from_file():
-    with open(BENCH_TYPE_PATH, "r", encoding="utf-8") as f:
+    with open(f"{CONFIG_PATH}/{CONFIG_DIRNAME}/{BENCH_TYPE_FILE}", "r", encoding="utf-8") as f:
         bench_type = f.read()
     return get_bench_type(bench_type)
 
@@ -138,14 +140,11 @@ def create_scan_opts(src, dst):
     }
     return d
 
-CONFIG_PATH = "/home/duk/code/RedisShake/demo"
-CONFIG_DIRNAME = "config"
-
 def save_toml_file(opts, filename):
     pprof_port = 40000
     opts["advanced"] = {"pprof_port": pprof_port, "log_level": "info"}
 
-    dirpath = f"/home/duk/code/RedisShake/demo/{CONFIG_DIRNAME}"
+    dirpath = f"{CONFIG_PATH}/{CONFIG_DIRNAME}"
     filepath = f"{dirpath}/{filename}.toml"
     with open(filepath, "w", encoding="utf-8") as f:
         toml.dump(opts, f)

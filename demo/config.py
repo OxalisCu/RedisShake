@@ -19,15 +19,23 @@ def get_config():
     writer_info = str.split(writer_address, ":")
     reader_cluster = configs[f"{configpath[t.value]['type']}_reader"]["cluster"]
     writer_cluster = configs["redis_writer"]["cluster"]
+    reader_username = configs[f"{configpath[t.value]['type']}_reader"]["username"]
+    reader_password = configs[f"{configpath[t.value]['type']}_reader"]["password"]
+    writer_username = configs["redis_writer"]["username"]
+    writer_password = configs["redis_writer"]["password"]
     res = {
         "src": {
             "host": reader_info[0],
             "port": int(reader_info[1]),
+            "username": reader_username,
+            "password": reader_password,
             "cluster": reader_cluster,
         },
         "dst": {
             "host": writer_info[0],
             "port": int(writer_info[1]),
+            "username": writer_username,
+            "password": writer_password,
             "cluster": writer_cluster,
         },
         # "pprof_port": configs["advanced"]["pprof_port"],
