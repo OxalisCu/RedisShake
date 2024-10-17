@@ -1,0 +1,4 @@
+2024-10-17 11:11:27 INF read_count=[853742], read_ops=[171627.32], write_count=[853742], write_ops=[171628.32], src-1, scan_dbid=[0], scan_percent=[3.08%], need_update_count=[99998]
+2024-10-17 11:11:32 INF read_count=[1722031], read_ops=[173903.30], write_count=[1722031], write_ops=[173902.30], src-2, scan_dbid=[0], scan_percent=[5.57%], need_update_count=[100000]
+2024-10-17 11:11:37 INF read_count=[2589085], read_ops=[175408.89], write_count=[2589084], write_ops=[175408.89], src-3, scan_dbid=[0], scan_percent=[8.07%], need_update_count=[100000]
+2024-10-17 11:11:42 INF read_count=[3455146], read_ops=[171756.29], write_count=[3455145], write_ops=[171757.29], src-4, scan_dbid=[0], scan_percent=[9.53%], need_update_count=[100000]

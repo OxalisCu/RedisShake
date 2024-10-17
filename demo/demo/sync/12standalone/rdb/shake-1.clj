@@ -1,0 +1,6 @@
+2024-10-04 13:18:45 INF read_count=[1444459], read_ops=[414326.94], write_count=[1444459], write_ops=[414326.94], syncing rdb, size=[40 MiB/275 MiB]
+2024-10-04 13:18:50 INF read_count=[2988817], read_ops=[316335.40], write_count=[2988816], write_ops=[316335.40], syncing rdb, size=[96 MiB/275 MiB]
+2024-10-04 13:18:55 INF read_count=[4219737], read_ops=[249634.87], write_count=[4219736], write_ops=[249635.87], syncing rdb, size=[140 MiB/275 MiB]
+2024-10-04 13:19:00 INF read_count=[5273566], read_ops=[230726.34], write_count=[5273565], write_ops=[230726.34], syncing rdb, size=[175 MiB/275 MiB]
+2024-10-04 13:19:05 INF read_count=[6526378], read_ops=[251472.08], write_count=[6526378], write_ops=[251472.08], syncing rdb, size=[218 MiB/275 MiB]
+2024-10-04 13:19:10 INF read_count=[8009613], read_ops=[337034.42], write_count=[8009613], write_ops=[337034.42], syncing rdb, size=[275 MiB/275 MiB]

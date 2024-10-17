@@ -1,0 +1,22 @@
+type = "scan"
+
+[scan_reader]
+cluster = false
+address = "10.0.128.147:6379"
+scan = true
+ksn = true
+username = "username"
+password = "D3xP!4@AS!d@6q"
+count = 10
+
+[redis_writer]
+cluster = false
+address = "10.0.128.124:6379"
+username = "username"
+password = "D3xP!4@AS!d@6q"
+
+[advanced]
+# pprof_port = 40000
+log_level = "info"
+rdb_restore_command_behavior = "rewrite"
+dir = "data-4"

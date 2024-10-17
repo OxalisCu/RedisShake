@@ -13,9 +13,7 @@ data/
 log/
 
 demo/data
-demo/bench
 demo/mem
-demo/demo
 
 bin-*
 data-*

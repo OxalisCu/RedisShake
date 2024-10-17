@@ -1,0 +1,6 @@
+2024-10-04 12:56:02 INF read_count=[180238], read_ops=[43499.17], write_count=[180238], write_ops=[43498.17], syncing aof, diff=[46480]
+2024-10-04 12:56:07 INF read_count=[856496], read_ops=[132850.42], write_count=[856496], write_ops=[132850.42], syncing aof, diff=[44800]
+2024-10-04 12:56:12 INF read_count=[1514910], read_ops=[134100.19], write_count=[1514910], write_ops=[134100.19], syncing aof, diff=[78000]
+2024-10-04 12:56:17 INF read_count=[2209600], read_ops=[134926.30], write_count=[2209600], write_ops=[134926.30], syncing aof, diff=[9744]
+2024-10-04 12:56:22 INF read_count=[2833370], read_ops=[119681.55], write_count=[2833370], write_ops=[119681.55], syncing aof, diff=[52528]
+2024-10-04 12:56:27 INF read_count=[3509728], read_ops=[137342.87], write_count=[3509728], write_ops=[137342.87], syncing aof, diff=[150080]
