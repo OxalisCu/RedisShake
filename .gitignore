@@ -13,7 +13,6 @@ data/
 log/
 
 demo/data
-demo/mem
 
 bin-*
 data-*
